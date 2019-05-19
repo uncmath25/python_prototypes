@@ -1,0 +1,5 @@
+id,catalog.product.catalog_item.item_number,False
+description,catalog.product.description,False
+price,catalog.product.catalog_item.price,False
+size,catalog.product.catalog_item.size.description,False
+color_info,catalog.product.catalog_item.size.color_swatch,True
