@@ -1,6 +1,6 @@
 #!/bin/bash
 
-DOCKERIMAGE="pythonexamples_scripts"
+DOCKERIMAGE="pythonprototypes_scripts"
 SOURCE_SCRIPTS_DIR="$(pwd)/scripts"
 TARGET_SCRIPTS_DIR="/home/python_user/scripts"
 

@@ -2,17 +2,16 @@ import argparse
 import csv
 from keras.layers import Dense, Dropout
 from keras.models import Sequential
-### Necessary for virtual environment ###
-import matplotlib
-matplotlib.use('agg')
+# Necessary for virtual environment
+# import matplotlib
+# matplotlib.use('agg')
 import matplotlib.pyplot as plt
-#########################################
 import numpy as np
 import os
 import pandas as pd
 import pymysql
 from sklearn.model_selection import train_test_split
-import sys
+# import sys
 import time
 
 
@@ -40,9 +39,10 @@ class NeuralNetworkManager():
 
     def _query_database(self, query):
         """
-        Queries the aurora database and returns any fetched data
+        Queries the mysql database and returns any fetched data
         """
-        conn = pymysql.connect(user=self._SQL_USERNAME, passwd=self._SQL_PASSWORD, host=self._DATABASE_IP_ADDRESS, port=self._DATABASE_PORT_NUMBER, charset='utf8', local_infile=True)
+        conn = pymysql.connect(user=self._SQL_USERNAME, passwd=self._SQL_PASSWORD, host=self._DATABASE_IP_ADDRESS,
+                               port=self._DATABASE_PORT_NUMBER, charset='utf8', local_infile=True)
 
         cur = conn.cursor()
         cur.execute(query)
@@ -58,7 +58,7 @@ class NeuralNetworkManager():
 
         return(data, column_names)
 
-    def import_merge_training_data(input_table_1, input_table_2, output_table):
+    def import_merge_training_data(self, input_table_1, input_table_2, output_table):
         """
         Import and merge the neural network training data
         """
@@ -66,21 +66,21 @@ class NeuralNetworkManager():
 
         input_1_query = 'SELECT id, value ' + \
                         'FROM ' + input_table_1 + ';'
-        input_1_df = pd.DataFrame([list(row) for row in list(_query_database(input_1_query))])
+        input_1_df = pd.DataFrame([list(row) for row in list(self._query_database(input_1_query))])
         input_1_df.columns = ['ID', 'Input_Value_1']
         input_1_df.index = input_1_df['ID']
 
         input_2_query = 'SELECT id, value ' + \
                         'FROM ' + input_table_2 + ';'
-        input_2_df = pd.DataFrame([list(row) for row in list(_query_database(input_2_query))])
+        input_2_df = pd.DataFrame([list(row) for row in list(self._query_database(input_2_query))])
         input_2_df.columns = ['ID', 'Input_Value_2']
         input_2_df.index = input_2_df['ID']
 
         output_query = 'SELECT id, value ' + \
-                        'FROM ' + output_table + ';'
-        output_df = pd.DataFrame([list(row) for row in list(_query_database(output_query))])
+                       'FROM ' + output_table + ';'
+        output_df = pd.DataFrame([list(row) for row in list(self._query_database(output_query))])
         output_df.columns = ['ID', 'Output_Value']
-        output_df.index = attribute_df['ID']
+        output_df.index = output_df['ID']
 
         self._input_df = pd.merge(input_1_df, input_2_df.iloc[:, 1:], left_index=True, right_index=True)
         self._input_df = pd.merge(self._input_df, output_df.iloc[:, 1:], left_index=True, right_index=True)
@@ -88,11 +88,11 @@ class NeuralNetworkManager():
 
         self._input_df['Input_Value_1'] = self._input_df['Input_Value_1'].astype('float64')
         self._input_df['Input_Value_1'] = (self._input_df['Input_Value_1'] - np.mean(self._input_df['Input_Value_1'])) \
-                                            / np.std(self._input_df['Input_Value_1'])
+            / np.std(self._input_df['Input_Value_1'])
 
         print('Importing and merging the training data took {0} seconds'.format(round(time.time() - start_time)))
 
-    def train_model(residues_plot_path):
+    def train_model(self, residues_plot_path):
         """
         Train a neural network on the input data
         """
@@ -102,11 +102,11 @@ class NeuralNetworkManager():
         Y = np.array(train_df.iloc[:, -1]).astype('float64')
 
         self._model = Sequential()
-        self._model.add(Dense(100, input_dim=(train_df.shape[1]-1), activation='linear')) # linear, relu
-        # self._model.add(Dropout(0.1))
+        self._model.add(Dense(100, input_dim=(train_df.shape[1] - 1), activation='linear'))  # linear, relu
+        self._model.add(Dropout(0.1))
         self._model.add(Dense(1))
 
-        self._model.compile(loss='mean_squared_error', optimizer='adam') # adam, sgd
+        self._model.compile(loss='mean_squared_error', optimizer='adam')  # adam, sgd
 
         self._model.fit(X, Y, epochs=10, batch_size=10)
         mse = self._model.evaluate(X, Y)
@@ -138,7 +138,7 @@ class NeuralNetworkManager():
         plt.savefig(residues_plot_path)
         plt.clf()
 
-    def import_merge_pred_data(input_path_1, input_path_2):
+    def import_merge_pred_data(self, input_path_1, input_path_2):
         """
         Import and merge the neural network prediction data
         """
@@ -152,11 +152,11 @@ class NeuralNetworkManager():
         self._pred_df = pd.merge(pred_1_df, pred_2_df.iloc[:, 1:], left_index=True, right_index=True)
         self._pred_df['Input_Value_1'] = self._pred_df['Input_Value_1'].astype('float64')
         self._pred_df['Input_Value_1'] = (self._pred_df['Input_Value_1'] - np.mean(self._pred_df['Input_Value_1'])) \
-                                            / np.std(self._pred_df['Input_Value_1'])
+            / np.std(self._pred_df['Input_Value_1'])
 
         print('Importing and merging the prediction data took {0} seconds'.format(round(time.time() - start_time)))
 
-    def predict_results(prediction_batch_size):
+    def predict_results(self, prediction_batch_size):
         """
         Use the model to predict attribute values for the max artists
         """
@@ -180,19 +180,19 @@ class NeuralNetworkManager():
 
         print("Predicting the values took {0} seconds".format(round(time.time() - start_time, 2)))
 
-    def export_results(results_table):
+    def export_results(self, results_table):
         """
         Export predicted attribute values to the appropriate sql table
         """
         start_time = time.time()
         # sys.stderr = open(os.devnull, "w")
-        self._query_database('LOAD DATA LOCAL INFILE "' + self._TEMP_PREDICTIONS_PATH + '" ' + \
-                                'INTO TABLE ' + results_table + ' ' + \
-                                'CHARACTER SET UTF8 ' + \
-                                'COLUMNS TERMINATED BY "," ' + \
-                                r'ESCAPED BY "\"" ' + \
-                                r'ENCLOSED BY "\"" '  + \
-                                r'LINES TERMINATED BY "\r\n";')
+        self._query_database(''.join(['LOAD DATA LOCAL INFILE "' + self._TEMP_PREDICTIONS_PATH + '" ',
+                                      'INTO TABLE ' + results_table + ' ',
+                                      'CHARACTER SET UTF8 ',
+                                      'COLUMNS TERMINATED BY "," ',
+                                      r'ESCAPED BY "\"" ',
+                                      r'ENCLOSED BY "\"" ',
+                                      r'LINES TERMINATED BY "\r\n";']))
         print("Inserting the predictions into the results table took {0} seconds".format(round(time.time() - start_time)))
         # sys.stdout = sys.__stderr__
         os.remove(self._TEMP_PREDICTIONS_PATH)
@@ -203,6 +203,8 @@ def run(sql_username, sql_password):
     Run the program using the cli inputs
     """
     RANDOM_SEED = 1
+    np.random.seed(RANDOM_SEED)
+
     TEMP_PREDICTIONS_PATH = 'temp_predictions.csv'
     SQL_USERNAME = str(sql_username)
     SQL_PASSWORD = str(sql_password)
@@ -222,7 +224,7 @@ def run(sql_username, sql_password):
 
     RESULTS_TABLE = 'results_table'
 
-    manager = NeuralNetworkManager()
+    manager = NeuralNetworkManager(TEMP_PREDICTIONS_PATH, SQL_USERNAME, SQL_PASSWORD, DATABASE_IP_ADDRESS, DATABASE_PORT_NUMBER)
     manager.import_merge_training_data(INPUT_TABLE_1, INPUT_TABLE_2, OUTPUT_TABLE)
     manager.train_model(RESIDUES_PLOT_PATH)
     manager.import_merge_training_data(INPUT_PATH_1, INPUT_PATH_2)

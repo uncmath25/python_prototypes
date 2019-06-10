@@ -1,9 +1,8 @@
 import argparse
-### Necessary for virtual environment ###
-import matplotlib
-matplotlib.use('agg')
+# Necessary for virtual environment
+# import matplotlib
+# matplotlib.use('agg')
 import matplotlib.pyplot as plt
-#########################################
 import numpy as np
 import os
 import pandas as pd
@@ -42,7 +41,7 @@ class KMeansClusterManager():
         self._df = pd.DataFrame(iris_data.data, columns=iris_data.feature_names)
         species_names = list(iris_data.target_names)
         self._df['species'] = [species_names[i] for i in list(iris_data.target)]
-        self._norm_df = self._normalize_df(self._df, list(range(self._df.shape[1]-1)))
+        self._norm_df = self._normalize_df(self._df, list(range(self._df.shape[1] - 1)))
 
         # print(self._df.shape)
         # print(self._df.head())
@@ -67,8 +66,7 @@ class KMeansClusterManager():
         Un-normalizes the columns of a dataframe according to the associated dataframe
         """
         result_df = norm_df.copy()
-        columns = list(raw_df.columns)
-        result_df.columns = raw_df.columns
+        result_df.columns = list(raw_df.columns)
         for i in col_index:
             result_df.iloc[:, i] = (result_df.iloc[:, i] * np.std(raw_df.iloc[:, i])) + np.mean(raw_df.iloc[:, i])
         return(result_df)
@@ -79,11 +77,12 @@ class KMeansClusterManager():
         """
         start_time = time.time()
 
-        sub_df = self._norm_df.iloc[:, :(self._df.shape[1]-1)]
+        sub_df = self._norm_df.iloc[:, :(self._df.shape[1] - 1)]
         kmeans = cluster.KMeans(n_clusters=cluster_number).fit(sub_df)
         self._cluster_centers = [list(center) for center in kmeans.cluster_centers_]
         self._cluster_labels = list(kmeans.labels_)
-        self._clusters = [[list(row) for index, row in sub_df.iterrows() if self._cluster_labels[index]==cluster_number] for cluster_number in range(cluster_number)]
+        self._clusters = [[list(row) for index, row in sub_df.iterrows() if self._cluster_labels[index] == cluster_number]
+                          for cluster_number in range(cluster_number)]
         self._sse = sum([sum([self._compute_distance(self._clusters[cluster_number][i], self._cluster_centers[cluster_number])
                               for i in range(len(self._clusters[cluster_number]))])
                          for cluster_number in range(cluster_number)])
@@ -115,9 +114,10 @@ class KMeansClusterManager():
         Plot the clustering results according to a pca decomposition
         """
         pca = PCA(n_components=2)
-        pca.fit(self._norm_df.iloc[:, :(self._df.shape[1]-1)])
-        pca_transform = [list(row) for row in list(pca.fit_transform(self._norm_df.iloc[:, :(self._df.shape[1]-1)]))]
-        pca_clusters = [[pca_transform[i] for i in range(len(self._cluster_labels)) if self._cluster_labels[i]==cluster_number] for cluster_number in range(len(self._cluster_centers))]
+        pca.fit(self._norm_df.iloc[:, :(self._df.shape[1] - 1)])
+        pca_transform = [list(row) for row in list(pca.fit_transform(self._norm_df.iloc[:, :(self._df.shape[1] - 1)]))]
+        pca_clusters = [[pca_transform[i] for i in range(len(self._cluster_labels)) if self._cluster_labels[i] == cluster_number]
+                        for cluster_number in range(len(self._cluster_centers))]
 
         # print(pca.components_)
         # print(pca.explained_variance_ratio_)
@@ -154,7 +154,6 @@ class KMeansClusterManager():
 
         plt.rcParams["figure.figsize"] = (16, 12)
 
-        BOUNDS = (-3, 3)
         plt.xlim(min(cluster_sizes) - 0.1, max(cluster_sizes) + 0.1)
         plt.ylim(min(sses) - 0.1, max(sses) + 0.1)
 
@@ -179,7 +178,7 @@ def run(output_dir):
         os.makedirs(OUTPUT_DIR)
 
     VISUALIZATION_PLOT_PATH = os.path.join(OUTPUT_DIR, 'k_means_plot.png')
-    ELBOW_PLOT_PATH = os.path.join(OUTPUT_DIR, 'k_means_elbow.png')
+    # ELBOW_PLOT_PATH = os.path.join(OUTPUT_DIR, 'k_means_elbow.png')
 
     cluster_manager = KMeansClusterManager(RANDOM_SEED)
     cluster_manager.load_data()

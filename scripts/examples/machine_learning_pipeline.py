@@ -1,9 +1,8 @@
 import argparse
-### Necessary for virtual environment ###
-import matplotlib
-matplotlib.use('agg')
+# Necessary for virtual environment
+# import matplotlib
+# matplotlib.use('agg')
 import matplotlib.pyplot as plt
-#########################################
 import numpy as np
 import os
 import pandas as pd
@@ -81,10 +80,10 @@ class MLPipeline():
         self._train_df = self._total_input_df.loc[list(split[0][0])]
         self._test_df = self._total_input_df.loc[list(split[0][1])]
 
-        self._train_X_arr = self._train_df[[col for col in self._train_df.columns if col!='MHV']]
+        self._train_X_arr = self._train_df[[col for col in self._train_df.columns if col != 'MHV']]
         self._train_y_arr = self._train_df['MHV']
 
-        self._test_X_arr = self._test_df[[col for col in self._test_df.columns if col!='MHV']]
+        self._test_X_arr = self._test_df[[col for col in self._test_df.columns if col != 'MHV']]
         self._test_y_arr = self._test_df['MHV']
 
         if self._SHOULD_SHOW_OUTPUT:
@@ -115,7 +114,7 @@ class MLPipeline():
 
     def clean_input_data(self):
         """
-        Clean the input data with a resuable pipeline for the test data later
+        Clean the input data with a reusable pipeline for the test data later
         """
         start_time = time.time()
 
@@ -124,7 +123,7 @@ class MLPipeline():
             ('std_scaler', sklearn.preprocessing.StandardScaler())
         ])
 
-        self._train_X_arr  = self._input_pipeline.fit_transform(self._train_X_arr)
+        self._train_X_arr = self._input_pipeline.fit_transform(self._train_X_arr)
 
         print('### CLEANING THE INPUT DATA TOOK {0} SECONDS ###'.format(round(time.time() - start_time, 1)))
 
@@ -155,16 +154,16 @@ class MLPipeline():
         start_time = time.time()
 
         grid_search = sklearn.model_selection.GridSearchCV(model, param_grid, scoring=scoring_metric, cv=cross_val_splits)
-        grid_search.fit(self._train_X_arr , self._train_y_arr)
+        grid_search.fit(self._train_X_arr, self._train_y_arr)
         if self._SHOULD_SHOW_OUTPUT:
             print(grid_search.best_params_)
 
         self._model = grid_search.best_estimator_
-        self._model.fit(self._train_X_arr , self._train_y_arr)
+        self._model.fit(self._train_X_arr, self._train_y_arr)
 
         if self._SHOULD_SHOW_OUTPUT:
             scores = sklearn.model_selection.cross_val_score(self._model, self._train_X_arr, self._train_y_arr,
-                                                                scoring=scoring_metric, cv=cross_val_splits)
+                                                             scoring=scoring_metric, cv=cross_val_splits)
             scores = np.sqrt(-scores)
 
             print(str(self._model))
@@ -174,8 +173,8 @@ class MLPipeline():
 
         if self._SHOULD_SHOW_OUTPUT:
             print('Feature Importance')
-            print(sorted(zip([col for col in self._train_df.columns if col!='MHV'],
-                                [round(float(x), 2) for x in grid_search.best_estimator_.feature_importances_]), reverse=True))
+            print(sorted(zip([col for col in self._train_df.columns if col != 'MHV'],
+                             [round(float(x), 2) for x in grid_search.best_estimator_.feature_importances_]), reverse=True))
 
         pickle.dump(self._model, open(model_pickle_path, 'wb'))
 
@@ -230,7 +229,7 @@ class MLPipeline():
         data_X_arr = np.genfromtxt(data_path, delimiter=',')
         data_X_arr = self._input_pipeline.transform(data_X_arr)
 
-        pred_y_arr = model.predict(self._test_X_arr)
+        pred_y_arr = model.predict(data_X_arr)
         np.savetxt(pred_path, pred_y_arr, delimiter=',')
 
         print('### PREDICTING THE DATA TOOK {0} SECONDS ###'.format(round(time.time() - start_time, 1)))
@@ -248,6 +247,8 @@ def run(output_dir, should_show_output):
 
     TARGET_HIST_PATH = os.path.join(OUTPUT_DIR, 'target_hist.png')
 
+    DATA_PATH = os.path.join(OUTPUT_DIR, 'sample_data.csv')
+
     CORR_PLOT_PATH = os.path.join(OUTPUT_DIR, 'corr_plot.png')
 
     MODELS = [
@@ -264,7 +265,6 @@ def run(output_dir, should_show_output):
 
     MODEL_EVAL_RES_PLOT = os.path.join(OUTPUT_DIR, 'model_eval_res_plot.png')
 
-    DATA_PATH = os.path.join(OUTPUT_DIR, 'sample_data.csv')
     PRED_PATH = os.path.join(OUTPUT_DIR, 'predictions.csv')
 
     pipeline = MLPipeline(SHOULD_SHOW_OUTPUT)

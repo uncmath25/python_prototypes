@@ -1,15 +1,13 @@
 import argparse
 from imblearn.over_sampling import RandomOverSampler
 from imblearn.under_sampling import RandomUnderSampler
-### Necessary for virtual environment ###
-import matplotlib
-matplotlib.use('agg')
+# Necessary for virtual environment
+# import matplotlib
+# matplotlib.use('agg')
 import matplotlib.pyplot as plt
-#########################################
 import numpy as np
 import os
 import pandas as pd
-import pickle
 from scipy import interp
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
@@ -83,8 +81,8 @@ class ROCManager():
             plt.plot(mean_fpr, mean_threshold, linestyle='--', lw=2, color='b', label='Thresholds')
             plt.plot([0, 1], [0, 1], linestyle='--', lw=2, color='r', label='Chance')
 
-            plt.xlim([0-PLOT_MARGIN, 1+PLOT_MARGIN])
-            plt.ylim([0-PLOT_MARGIN, 1+PLOT_MARGIN])
+            plt.xlim([0 - PLOT_MARGIN, 1 + PLOT_MARGIN])
+            plt.ylim([0 - PLOT_MARGIN, 1 + PLOT_MARGIN])
             plt.xlabel('False Positive Rate')
             plt.ylabel('True Positive Rate')
             plt.title(sampling_type + ' ROC Distribution')
@@ -98,7 +96,7 @@ class ROCManager():
         Compute the relevant data to plot a roc distribution
         """
         X = np.array(self._input_df.iloc[:, :-1])
-        y = np.array([self._FEATURE_NAMES.index(target_class) for target_class in list(self._input_df.iloc[:, -1])]) # factorized
+        y = np.array([self._FEATURE_NAMES.index(target_class) for target_class in list(self._input_df.iloc[:, -1])])  # factorized
 
         model = self._choose_model(model_str)
         resampler = StratifiedKFold(resampling_number)
@@ -144,10 +142,10 @@ class ROCManager():
         elif model_str == 'rf':
             return(RandomForestClassifier())
         elif model_str == 'svm':
-            # return SVC(C=1, kernel='linear') # linear boundary
-            return SVC(C=1, kernel='poly', degree=2) # non-linear boundary
+            # return SVC(C=1, kernel='linear')  # linear boundary
+            return SVC(C=1, kernel='poly', degree=2)  # non-linear boundary
             # return SVC(C=1, kernel='rbf')
-            # return SVC(C=1, kernel='sigmoid') # binary classification
+            # return SVC(C=1, kernel='sigmoid')  # binary classification
 
 
 def run(model_str, output_dir):
