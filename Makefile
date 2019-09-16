@@ -1,30 +1,30 @@
-.PHONY: setup clean build flake down upn
+.PHONY: clean build flake run
 
-DOCKER_COMPOSE_NOTEBOOK="docker-compose-notebook.yml"
-
-setup:
-	@echo "*** Setting up the repo ***"
-	chmod +x ./bin/setup_repo.sh; \
-	./bin/setup_repo.sh
+SHELL := /bin/bash
+IMAGE_NAME := uncmath25/jupyter-notebook
+IMAGE_HOME_DIR := /home/jovyan
 
 clean:
 	@echo "*** Cleaning the repo ***"
 	rm -rf output/*
 
-build:
+build: clean
 	@echo "*** Building the docker images ***"
-	docker-compose -f $(DOCKER_COMPOSE_NOTEBOOK) build
-	docker build -f "Dockerfile-scripts" -t "pythonprototypes_scripts" .
+	docker build -t $(IMAGE_NAME) .
 
-flake:
+flake: build
 	@echo "*** Linting the python scripts ***"
-	./bin/flake_repo.sh
+	docker run \
+		--rm \
+		-p 8888:8888 \
+		-v "$$(pwd)/scripts:$(IMAGE_HOME_DIR)/scripts" \
+		$(IMAGE_NAME) bash -c "flake8 --ignore='E501' scripts"
 
-down:
-	@echo "*** Stopping the Dockerized environments ***"
-	docker-compose -f $(DOCKER_COMPOSE_NOTEBOOK) down --remove-orphans
-
-upn: down
-	@echo "*** Starting the Dockerized jupyter server ***"
-	@echo "Access the server at: http://localhost:8888"
-	docker-compose -f $(DOCKER_COMPOSE_NOTEBOOK) up -d
+run: build
+	@echo "*** Running Jupyter notebook virtual environment ***"
+	docker run \
+		--rm \
+		-p 8888:8888 \
+		-e JUPYTER_ENABLE_LAB=yes \
+		-v "$$(pwd)/notebooks:$(IMAGE_HOME_DIR)/notebooks" \
+		$(IMAGE_NAME)

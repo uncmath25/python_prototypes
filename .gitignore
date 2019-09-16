@@ -1,6 +1,12 @@
 .ipynb_checkpoints/
 __pycache__/
 
+.ipython
+.jupyter
+.local
+
 output/*
 notebooks/work/*
 scripts/work/*
+
+notebooks/data/CIFAR10
