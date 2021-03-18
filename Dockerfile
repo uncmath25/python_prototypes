@@ -1,6 +1,6 @@
 FROM jupyter/datascience-notebook:65761486d5d3
 
-USER $NB_USER
+USER jovyan
 RUN mkdir -p /home/jovyan/.ipython/profile_default
 
 ADD ./requirements.txt /tmp/requirements.txt
